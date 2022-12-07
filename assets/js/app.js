@@ -20,3 +20,4 @@ require('./page/CommunityFundProposalViewPage');
 require('./page/Home');
 require('./page/TransactionIndexPage');
 require('./page/TransactionViewPage');
+require('./page/StatIndexPage.js');

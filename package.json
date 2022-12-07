@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "watch": "encore dev --watch",
+    "build": "encore production --progress"
+  },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "^5.15.3",
     "@symfony/webpack-encore": "^1.1.2",
