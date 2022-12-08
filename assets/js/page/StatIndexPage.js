@@ -1,4 +1,6 @@
+import NumberFormat from "../services/NumberFormat";
 import Chart from "chart.js";
+import ExplorerApi from "../services/ExplorerApi";
 
 const $ = require('jquery');
 
@@ -37,33 +39,82 @@ class StatIndexPage {
     console.info("populateSupplyChart");
     let supplyChart = $('#supply-chart');
     if (supplyChart.length) {
-      // axios.get('/')
-    }
+      // get n blocks from explorer api
+      // populate chart with data
+      ExplorerApi.get(
+        "/block",
+        {
+          sort: 'height:asc',
+          size: 1000,
+        },
+        function (blocks) {
+          console.log({ blocks })
+          const data = blocks.elements.map(block => {
+            return {
+              height: block.height,
+              supply: block.supply_balance.private + block.supply_balance.public,
+            }
+          })
 
-    this.loadSupplyChartData();
+          this.loadSupplyChartData(data)
+        }.bind(this)
+      )
+    }
   }
 
-  loadSupplyChartData() {
+  loadSupplyChartData(blocks) {
     let ctx = $('#supply-chart-chart');
     let loader = $('#supply-chart-chart-loader');
 
-    let options = { }
+    let options = {
+      scales: {
+        yAxes: [
+          {
+            ticks: {
+              // Abbreviate millions
+              callback: function(value, idx, values) {
+                return NumberFormat.formatNav(value);
+              },
+            }
+          }
+        ],
+        xAxes: [
+          {
+            ticks: {
+              stepSize: 100
+            }
+          }
+        ]
+      }
+    }
+
+    // let filteredBlocks = blocks.filter(b => {
+    //   b.height
+    // })
 
     let data = {
-      labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      labels: blocks.map(b => b.height),
       datasets: [
         {
           label: 'Amount of coins',
-          data: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+          data: blocks.map(b => b.supply),
           fill: true,
           lineTension: 0.1,
+          backgroundColor: "rgba(0,0,0,0)",
+          borderColor: "rgb(183, 61, 175)",
+          borderWidth: 1,
+          pointRadius: 0.1,
+          pointStyle: 'line',
+          pointBackgroundColor: "rgb(183, 61, 175)",
+          spanGaps: true,
         }
       ]
     }
 
     let chart = new Chart(ctx, {
       type: 'line',
-      data: data,
+      data,
+      options,
     });
 
     ctx.show();
