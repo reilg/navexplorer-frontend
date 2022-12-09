@@ -7,6 +7,9 @@ const $ = require('jquery');
 class StatIndexPage {
   constructor() {
     console.log("Stats Page");
+
+    this.data = [];
+
     // this.populateStakingCoins();
     this.populateSupplyChart();
   }
@@ -35,34 +38,46 @@ class StatIndexPage {
     loader.hide();
   }
 
+
+
   populateSupplyChart() {
     console.info("populateSupplyChart");
     let supplyChart = $('#supply-chart');
     if (supplyChart.length) {
-      // get n blocks from explorer api
-      // populate chart with data
+      console.time('load');
       ExplorerApi.get(
         "/block",
         {
           sort: 'height:asc',
           size: 1000,
+          page: 1,
         },
-        function (blocks) {
-          console.log({ blocks })
-          const data = blocks.elements.map(block => {
+        function(data) {
+          console.log({ data });
+          let blocks = data.elements.map(block => {
             return {
               height: block.height,
               supply: block.supply_balance.private + block.supply_balance.public,
             }
-          })
+          });
 
-          this.loadSupplyChartData(data)
+          this.loadSupplyChartData(blocks);
         }.bind(this)
       )
     }
   }
 
   loadSupplyChartData(blocks) {
+
+    blocks = []
+    for (let i = 0; i < 1e6; i++) {
+      blocks.push({
+        height: i,
+        supply: i,
+      })
+    }
+    console.log(blocks);
+
     let ctx = $('#supply-chart-chart');
     let loader = $('#supply-chart-chart-loader');
 
@@ -71,26 +86,35 @@ class StatIndexPage {
         yAxes: [
           {
             ticks: {
+              // NOTE:
+              // Figure out a way to load all the millions of data
+              // or maybe index it to something else?
+              // or create a new endpoint that spits out all the data at once
+              //
+              // Also maybe look into zoom plugin for chartjs
+              //
+              // It's also possible that we'd need to use a different
+              // chart package for this.
+              //
               // Abbreviate millions
-              callback: function(value, idx, values) {
-                return NumberFormat.formatNav(value);
-              },
+              // callback: function(val, idx) {
+              //   return NumberFormat.formatSatNav(val);
+              // },
+              maxTicksLimit: 10,
+              // beginAtZero: true,
             }
           }
         ],
         xAxes: [
           {
             ticks: {
-              stepSize: 100
+              maxTicksLimit: 10,
+              beginAtZero: true,
             }
           }
         ]
       }
     }
-
-    // let filteredBlocks = blocks.filter(b => {
-    //   b.height
-    // })
 
     let data = {
       labels: blocks.map(b => b.height),
@@ -119,6 +143,7 @@ class StatIndexPage {
 
     ctx.show();
     loader.hide();
+    console.timeEnd('load');
   }
 }
 
