@@ -1,6 +1,8 @@
 import NumberFormat from "../services/NumberFormat";
-import Chart from "chart.js";
+// import Chart from "chart.js";
 import ExplorerApi from "../services/ExplorerApi";
+
+import Highcharts from "highcharts";
 
 const $ = require('jquery');
 
@@ -8,10 +10,63 @@ class StatIndexPage {
   constructor() {
     console.log("Stats Page");
 
-    this.data = [];
-
     // this.populateStakingCoins();
-    this.populateSupplyChart();
+    // this.populateSupplyChart();
+    this.loadChart();
+  }
+
+  loadChart() {
+    let chart = $('#supply-chart');
+
+    let max = 60e6
+    let min = 50e6
+
+    let getRandom = (max) => {
+      return Math.floor(Math.random() * max)
+    }
+
+    let data = [];
+    let last = min;
+    for (let i = 0; i < 10e3; i++) {
+      let next = last + getRandom(1e2);
+      last = next
+      data.push([ i, next ])
+    }
+
+    console.time('load time');
+    Highcharts.chart('supply-chart-chart', {
+      chart: {
+        zoomType: 'x',
+        height: 700,
+      },
+
+      title: undefined,
+
+      tooltip: {
+        valueDecimals: 2
+      },
+
+      xAxis: {
+        type: 'linear',
+        title: {
+          text: 'Block height',
+        }
+      },
+
+      yAxis: {
+        type: 'linear',
+        title: {
+          text: 'Amount of coins',
+        }
+      },
+
+      series: [{
+        data: data,
+        lineWidth: 1,
+        name: 'Amount of coins'
+      }]
+    })
+    console.timeEnd('load time');
   }
 
   populateStakingCoins() {
@@ -37,8 +92,6 @@ class StatIndexPage {
     ctx.show()
     loader.hide();
   }
-
-
 
   populateSupplyChart() {
     console.info("populateSupplyChart");
