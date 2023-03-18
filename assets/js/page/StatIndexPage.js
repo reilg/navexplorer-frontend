@@ -12,7 +12,75 @@ class StatIndexPage {
 
     // this.populateStakingCoins();
     // this.populateSupplyChart();
-    this.loadChart();
+
+    try {
+      this.getSupplyData();
+    } catch (err) {
+      console.error('HOY!', err)
+    }
+  }
+
+  getSupplyData() {
+    ExplorerApi.get(
+      "/stats/supply",
+      {
+        size: 100,
+        // from:
+      },
+      function(data) {
+        this.loadSupplyChart(data)
+      }.bind(this)
+    )
+    console.log('fetching data ...')
+  }
+
+  loadSupplyChart(data) {
+    let loader = $('#supply-chart-chart-loader');
+
+    let supplyData = data.elements.map(b => ([b.height, b.supply]))
+
+    Highcharts.chart('supply-chart-chart', {
+      chart: {
+        zoomType: 'x',
+        height: 700,
+        events: {
+          load: () => {
+            loader.hide()
+          }
+        }
+      },
+
+      title: undefined,
+      tooltip: {
+        valueDecimals: 2
+      },
+      xAxis: {
+        events: {
+          afterSetExtremes: this.getSupplyData,
+        },
+        title: {
+          text: 'Block height',
+          tickInterval: 100000,
+          floor: 0,
+        }
+      },
+      yAxis: {
+        title: {
+          text: 'Amount of coins',
+        },
+      },
+      legend: {
+        enabled: false,
+      },
+      series: [{
+        type: 'line',
+        data: supplyData,
+        name: 'Spendable supply',
+        label: {
+          enabled: false,
+        }
+      }]
+    })
   }
 
   loadChart() {
@@ -38,6 +106,11 @@ class StatIndexPage {
       chart: {
         zoomType: 'x',
         height: 700,
+        events: {
+          load: () => {
+            console.log('THISer', this, testv)
+          },
+        },
       },
 
       title: undefined,
